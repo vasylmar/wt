@@ -136,34 +136,47 @@ func (m cli) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyCtrlD:
 				worktrees := m.worktrees.Items()
 				worktreeName := utils.GetWorktreeName(worktrees[m.current].Branch)
+				if worktrees[m.current].Locked {
+					m.error = fmt.Errorf("can't delete locked worktree, unlock it first")
+				} else {
+					err := git.RemoveWorktree(worktreeName)
+					if err != nil {
+						m.error = err
+					}
+					worktreeErr := m.worktrees.WorktreeList()
+					if worktreeErr != nil {
+						m.error = err
+					}
+					m.current = 0
 
-				err := git.RemoveWorktree(worktreeName)
-				if err != nil {
-					m.error = err
 				}
-				worktreeErr := m.worktrees.WorktreeList()
-				if worktreeErr != nil {
-					m.error = err
-				}
-				m.current = 0
+
 			case tea.KeyCtrlL:
 				worktrees := m.worktrees.Items()
 				worktreeName := utils.GetWorktreeName(worktrees[m.current].Branch)
 
-				if err := git.LockWorktree(worktreeName); err != nil {
-					m.error = fmt.Errorf("can't lock worktree: %w", err)
+				if !worktrees[m.current].Locked {
+					if err := git.LockWorktree(worktreeName); err != nil {
+						m.error = fmt.Errorf("can't lock worktree: %w", err)
+					}
+					worktreeErr := m.worktrees.WorktreeList()
+					if worktreeErr != nil {
+						m.error = worktreeErr
+					}
 				}
-			case tea.KeyCtrlU:
 
+			case tea.KeyCtrlU:
 				worktrees := m.worktrees.Items()
 				worktreeName := utils.GetWorktreeName(worktrees[m.current].Branch)
-				if err := git.UnlockWorktree(worktreeName); err != nil {
-					m.error = fmt.Errorf("can't unlock worktree: %w", err)
-				}
 
-			case tea.KeyCtrlP:
-				if err := git.PruneWorktree(); err != nil {
-					m.error = fmt.Errorf("can't push worktree: %w", err)
+				if worktrees[m.current].Locked {
+					if err := git.UnlockWorktree(worktreeName); err != nil {
+						m.error = fmt.Errorf("can't unlock worktree: %w", err)
+					}
+					worktreeErr := m.worktrees.WorktreeList()
+					if worktreeErr != nil {
+						m.error = worktreeErr
+					}
 				}
 
 			}
@@ -191,6 +204,13 @@ func (m cli) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+func RenderLockEmoji(locked bool) string {
+	if locked {
+		return " 🔒"
+	}
+	return ""
+}
+
 func (m cli) View() string {
 	var output string
 	cursor := cursorStyle.Render(">")
@@ -203,12 +223,17 @@ func (m cli) View() string {
 
 	for i, wt := range m.worktrees.Items() {
 		branchName := utils.GetWorktreeName(wt.Branch)
+
 		if i == m.current {
-			output += cursor + selectedOptionStyle.Render(branchName) + "\n"
+			output += cursor +
+				selectedOptionStyle.Render(branchName) +
+				RenderLockEmoji(wt.Locked) + "\n"
 		} else {
-			output += optionsStyle.Render(branchName) + "\n"
+			output += optionsStyle.Render(branchName) +
+				RenderLockEmoji(wt.Locked) + "\n"
 		}
 	}
+
 	var view string
 
 	if m.inputMode {

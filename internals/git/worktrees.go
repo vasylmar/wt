@@ -11,6 +11,7 @@ type Worktree struct {
 	Path   string
 	Commit string
 	Branch string
+	Locked bool
 }
 
 type Worktrees struct {
@@ -43,6 +44,8 @@ func (w *Worktrees) WorktreeList() error {
 			wt.Commit = strings.TrimSpace(rest)
 		} else if rest, ok := strings.CutPrefix(line, "branch"); ok {
 			wt.Branch = strings.TrimSpace(rest)
+		} else if strings.TrimSpace(line) == "locked" {
+			wt.Locked = true
 		}
 	}
 
@@ -74,10 +77,5 @@ func LockWorktree(worktreeName string) error {
 
 func UnlockWorktree(worktreeName string) error {
 	cmd := exec.Command("git", "worktree", "unlock", worktreeName)
-	return cmd.Run()
-}
-
-func PruneWorktree() error {
-	cmd := exec.Command("git", "worktree", "prune")
 	return cmd.Run()
 }
