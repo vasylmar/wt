@@ -23,8 +23,8 @@ type cli struct {
 
 const (
 	title       = "Hi, there 👋 \nThis is simple cli to create and delete git worktrees."
-	instruction = "q/esc: Quit | j/down: Next worktree | k/up: Previous worktree | ctrl+a: Add new worktree | ctrl+d: Delete current worktree"
-	inputHint   = "ctrl+u: Quit input mode | Enter: Create worktree"
+	instruction = "q/esc: Quit | j/down: Next worktree | k/up: Previous worktree | ctrl+a: Add new worktree | ctrl+d: Delete current worktree | ctrl+l: Lock current worktree | ctrl+u: Unlock current worktree"
+	inputHint   = "esc: Quit input mode | Enter: Create worktree"
 )
 
 var (
