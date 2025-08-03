@@ -222,7 +222,7 @@ func (m cli) View() string {
 	}
 
 	for i, wt := range m.worktrees.Items() {
-		branchName := utils.GetWorktreeName(wt.Branch)
+		branchName := utils.GetWorktreeName(wt.Path)
 
 		if i == m.current {
 			output += cursor +
