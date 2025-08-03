@@ -5,8 +5,10 @@
 ## Features
 
 - View all Git worktrees
-- Create a new worktree with a name (no slashes)
+- Create a new worktree with a name
 - Delete the currently selected worktree
+- Lock worktrees
+- Unlock worktrees
 
 ---
 
